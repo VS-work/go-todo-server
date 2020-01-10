@@ -16,7 +16,7 @@ var a App
 
 func TestMain(m *testing.M) {
 	a = App{}
-	a.Initialize("./todos_test.db")
+	a.Initialize("./db/todos_test.db")
 
 	ensureTableExists()
 
