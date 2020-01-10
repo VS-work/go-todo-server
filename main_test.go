@@ -118,7 +118,7 @@ func TestCreateTodo(t *testing.T) {
 		t.Errorf("Expected todo content to be 'test todo'. Got '%v'", m["content"])
 	}
 
-	if m["priority"] != 1.0 {
+	if m["priority"] != 0.0 {
 		t.Errorf("Expected todo Priority to be '1'. Got '%v'", m["priority"])
 	}
 

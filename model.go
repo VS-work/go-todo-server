@@ -6,10 +6,10 @@ import (
 )
 
 type todo struct {
-	ID   int    `json:"rowid"`
+	ID int `json:"rowid"`
 	Priority int `json:"priority"`
 	Content string `json:"content"`
-	Completed  bool    `json:"completed"`
+	Completed int `json:"completed"`
 }
 
 func (t *todo) getTodo(db *sql.DB) error {
@@ -18,11 +18,7 @@ func (t *todo) getTodo(db *sql.DB) error {
 }
 
 func (t *todo) updateTodo(db *sql.DB) error {
-	var completed int = 0
-	if t.Completed == true {
-		completed = 1
-	}
-	statement := fmt.Sprintf("UPDATE todos SET priority=%d, content='%s', completed=%d WHERE rowid=%d", t.Priority, t.Content, completed, t.ID)
+	statement := fmt.Sprintf("UPDATE todos SET priority=%d, content='%s', completed=%d WHERE rowid=%d", t.Priority, t.Content, t.Completed, t.ID)
 	_, err := db.Exec(statement)
 	return err
 }
@@ -49,25 +45,11 @@ func (t *todo) createTodo(db *sql.DB) error {
 		return err
 	}
 
-	statement = fmt.Sprintf("UPDATE todos SET priority=%d WHERE rowid=%d", t.ID, t.ID)
-	_, err = db.Exec(statement)
-
-	if err != nil {
-		return err
-	}
-
-	statement = fmt.Sprintf("SELECT priority FROM todos WHERE rowid=%d", t.ID)
-	err = db.QueryRow(statement).Scan(&t.Priority)
-
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
 func getTodos(db *sql.DB) ([]todo, error) {
-	rows, err := db.Query("SELECT rowid, priority, content, completed FROM todos")
+	rows, err := db.Query("SELECT rowid, priority, content, completed FROM todos ORDER BY rowid DESC")
 
 	if err != nil {
 		return nil, err
