@@ -11,6 +11,8 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/sendgrid/sendgrid-go"
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
 func respondWithError(w http.ResponseWriter, code int, message string) {
@@ -31,6 +33,24 @@ func respondWithText(w http.ResponseWriter, code int, content string) {
 
 	w.WriteHeader(code)
 	w.Write([]byte(content))
+}
+
+func sendEmail() {
+	sendGridApiKey := os.Getenv("SENDGRID_API_KEY")
+
+	if sendGridApiKey != "" {
+		from := mail.NewEmail("Todo User", "test@todo.com")
+		subject := "todo"
+		to := mail.NewEmail("Example User", "vyacheslav.chub@valor-software.com")
+		plainTextContent := "and easy to do anywhere, even with Go"
+		htmlContent := "<strong>and easy to do anywhere, even with Go</strong>"
+		message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
+		client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
+		_, err := client.Send(message)
+		if err != nil {
+			log.Println(err)
+		}
+	}
 }
 
 type App struct {
@@ -90,6 +110,7 @@ func (a *App) createTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	sendEmail()
 	respondWithJSON(w, http.StatusCreated, t)
 }
 

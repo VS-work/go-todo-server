@@ -25,6 +25,25 @@
   revision = "53cff3fcebd1e177d04129dc131523635bc45d3d"
   version = "v2.0.2"
 
+[[projects]]
+  digest = "1:043a68c728982a54355d57e347dd4b52ba5ab3fec50e7a57894b1baa80aa7a9e"
+  name = "github.com/sendgrid/rest"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "306b9bef57dc36f3435ccfcc08fe6ae2c6920344"
+  version = "v2.4.1"
+
+[[projects]]
+  digest = "1:2d1dca6b32a1a91c909efcb7f08b0ee7773fd32d95b376d066d99ec526d1329c"
+  name = "github.com/sendgrid/sendgrid-go"
+  packages = [
+    ".",
+    "helpers/mail",
+  ]
+  pruneopts = "UT"
+  revision = "9c0fdb97de76d31ebbd93122c3c4b68bc9c59733"
+  version = "v3.5.0"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
@@ -32,6 +51,8 @@
     "github.com/gorilla/handlers",
     "github.com/gorilla/mux",
     "github.com/mattn/go-sqlite3",
+    "github.com/sendgrid/sendgrid-go",
+    "github.com/sendgrid/sendgrid-go/helpers/mail",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
