@@ -165,7 +165,7 @@ func (a *App) Run() {
 	port, ok := os.LookupEnv("PORT")
 
 	if ok == false {
-		port = "3000"
+		port = "3001"
 	}
 
 	allowedOrigins := os.Args[2]
