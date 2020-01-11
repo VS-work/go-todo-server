@@ -24,6 +24,9 @@
 #   go-tests = true
 #   unused-packages = true
 
+[metadata.heroku]
+  root-package = "github.com/VS-work/go-todo-server"
+  ensure="true"
 
 [prune]
   go-tests = true

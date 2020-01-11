@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gorilla/handlers"
@@ -25,9 +26,20 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	w.Write(response)
 }
 
+func respondWithText(w http.ResponseWriter, code int, content string) {
+	w.Header().Set("Content-Type", "text/plain")
+
+	w.WriteHeader(code)
+	w.Write([]byte(content))
+}
+
 type App struct {
 	Router *mux.Router
 	DB     *sql.DB
+}
+
+func (a *App) getInfo(w http.ResponseWriter, r *http.Request) {
+	respondWithJSON(w, http.StatusOK, "Todos API")
 }
 
 func (a *App) getTodo(w http.ResponseWriter, r *http.Request) {
@@ -125,10 +137,15 @@ func (a *App) deleteTodo(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) Initialize(dbname string) {
 	var err error
+	if _, err := os.Stat(dbname); os.IsNotExist(err) {
+		log.Fatal(err)
+		return
+	}
 
 	a.DB, err = sql.Open("sqlite3", dbname)
 	if err != nil {
 		log.Fatal(err)
+		return
 	}
 
 	a.Router = mux.NewRouter()
@@ -136,6 +153,7 @@ func (a *App) Initialize(dbname string) {
 }
 
 func (a *App) initializeRouters() {
+	a.Router.HandleFunc("/", a.getInfo).Methods("GET")
 	a.Router.HandleFunc("/todos", a.getTodos).Methods("GET")
 	a.Router.HandleFunc("/todo", a.createTodo).Methods("POST")
 	a.Router.HandleFunc("/todo/{id:[0-9]+}", a.getTodo).Methods("GET")
@@ -143,9 +161,15 @@ func (a *App) initializeRouters() {
 	a.Router.HandleFunc("/todo/{id:[0-9]+}", a.deleteTodo).Methods("DELETE")
 }
 
-func (a *App) Run(addr string) {
+func (a *App) Run() {
+	port, ok := os.LookupEnv("PORT")
+
+	if ok == false {
+		port = "3000"
+	}
+
 	log.Fatal(http.
-		ListenAndServe(":8080",
+		ListenAndServe(":"+port,
 			handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}),
 				handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"}),
 				handlers.AllowedOrigins([]string{"*"}))(a.Router)))

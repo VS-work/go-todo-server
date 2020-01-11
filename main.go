@@ -1,19 +1,20 @@
 package main
 
-/*import (
-	"os"
+import (
 	"fmt"
-)*/
+	"os"
+)
 
 func main() {
-	/*if len(os.Args) > 1 {
-		dbname := os.Args[1]
-		fmt.Println(dbname)
-    return	
-	}*/
-
 	a := App{}
-	a.Initialize("./db/todos_test.db")
 
-	a.Run(":8080")
+	if len(os.Args) < 2 {
+		fmt.Println("Usage: go-todo-server db_file_path")
+		return
+	}
+
+	dbfile := os.Args[1]
+	a.Initialize(dbfile)
+
+	a.Run()
 }
