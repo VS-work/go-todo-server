@@ -2,38 +2,34 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 )
 
 type todo struct {
-	ID int `json:"rowid"`
-	Priority int `json:"priority"`
-	Content string `json:"content"`
-	Completed int `json:"completed"`
+	ID        int    `json:"rowid"`
+	Priority  int    `json:"priority"`
+	Content   string `json:"content"`
+	Completed int    `json:"completed"`
 }
 
 func (t *todo) getTodo(db *sql.DB) error {
-	statement := fmt.Sprintf("SELECT priority, content, completed FROM todos WHERE rowid=%d", t.ID)
-	return db.QueryRow(statement).Scan(&t.Priority, &t.Content, &t.Completed)
+	return db.QueryRow("SELECT priority, content, completed FROM todos WHERE rowid=?", t.ID).
+		Scan(&t.Priority, &t.Content, &t.Completed)
 }
 
 func (t *todo) updateTodo(db *sql.DB) error {
-	statement := fmt.Sprintf("UPDATE todos SET priority=%d, content='%s', completed=%d WHERE rowid=%d", t.Priority, t.Content, t.Completed, t.ID)
-	_, err := db.Exec(statement)
+	_, err := db.Exec("UPDATE todos SET priority=?, content=?, completed=? WHERE rowid=?",
+		t.Priority, t.Content, t.Completed, t.ID)
 	return err
 }
 
 func (t *todo) deleteTodo(db *sql.DB) error {
-	statement := fmt.Sprintf("DELETE FROM todos WHERE rowid=%d", t.ID)
-	_, err := db.Exec(statement)
+	_, err := db.Exec("DELETE FROM todos WHERE rowid=?", t.ID)
 
 	return err
 }
 
 func (t *todo) createTodo(db *sql.DB) error {
-	statement := fmt.Sprintf("INSERT INTO todos(content, completed, priority) VALUES('%s', 0, 0)", t.Content)
-
-	_, err := db.Exec(statement)
+	_, err := db.Exec("INSERT INTO todos(content, completed, priority) VALUES(?, 0, 0)", t.Content)
 
 	if err != nil {
 		return err
