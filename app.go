@@ -168,9 +168,11 @@ func (a *App) Run() {
 		port = "3000"
 	}
 
+	allowedOrigins := os.Args[2]
+
 	log.Fatal(http.
 		ListenAndServe(":"+port,
 			handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}),
 				handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"}),
-				handlers.AllowedOrigins([]string{"*"}))(a.Router)))
+				handlers.AllowedOrigins([]string{allowedOrigins}))(a.Router)))
 }
