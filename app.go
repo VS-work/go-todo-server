@@ -35,15 +35,13 @@ func respondWithText(w http.ResponseWriter, code int, content string) {
 	w.Write([]byte(content))
 }
 
-func sendEmail() {
+func sendEmail(subject string, plainTextContent string) {
 	sendGridApiKey := os.Getenv("SENDGRID_API_KEY")
 
 	if sendGridApiKey != "" {
 		from := mail.NewEmail("Todo User", "test@todo.com")
-		subject := "todo"
 		to := mail.NewEmail("Example User", "vyacheslav.chub@valor-software.com")
-		plainTextContent := "and easy to do anywhere, even with Go"
-		htmlContent := "<strong>and easy to do anywhere, even with Go</strong>"
+		htmlContent := "<strong>" + plainTextContent + "</strong>"
 		message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
 		client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
 		_, err := client.Send(message)
@@ -110,7 +108,7 @@ func (a *App) createTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendEmail()
+	go sendEmail("new todo just created", t.Content)
 	respondWithJSON(w, http.StatusCreated, t)
 }
 
@@ -136,6 +134,21 @@ func (a *App) updateTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var priorityMap map[int]string
+	priorityMap = make(map[int]string)
+	priorityMap[0] = "Normal"
+	priorityMap[1] = "Low"
+	priorityMap[2] = "High"
+
+	var completeMap map[int]string
+	completeMap = make(map[int]string)
+	completeMap[0] = "Not completed"
+	completeMap[1] = "Completed"
+
+	go sendEmail("todo just updated", t.Content+
+		" with "+priorityMap[t.Priority]+
+		" priority as "+completeMap[t.Completed])
+
 	respondWithJSON(w, http.StatusOK, t)
 }
 
@@ -152,6 +165,8 @@ func (a *App) deleteTodo(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+
+	go sendEmail("Todo just deleted", "todo #"+vars["id"]+" just deleted. Please, check your list!")
 
 	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }
