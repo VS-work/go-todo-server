@@ -50,7 +50,7 @@ There are following features regarding deployment:
 1. Please follow [instructions](https://devcenter.heroku.com/articles/getting-started-with-go) to deploy the application on `Heroku`
 2. Main settings regarding `Heroku` are placed [here](https://github.com/VS-work/go-todo-server/blob/master/Procfile). This file contains command-runner that includes the database file name and allowed origin (see `Run locally` above)
 3. There is an [empty DB file](https://github.com/VS-work/go-todo-server/blob/master/todos.db) (SQLite) that used as a database on Heroku's server.
-4. Only one frontend is allowed to works with the API: [https://vs-work.github.io](https://vs-work.github.io).
+4. Because this API server and its frontend counterpart are deployed on different hosts it's very important CORS policy especially `Allowed Origins`. It's a very bad idea to use `*` as allowed origins. That's why  `Allowed Origins` should contain only hosts that will really work with this API server. In this case, there is [https://vs-work.github.io](https://vs-work.github.io).
 5. If you want to use the API on Heroku go to the following URL: [https://dry-woodland-14649.herokuapp.com/](https://dry-woodland-14649.herokuapp.com/) 
 
 ## Sendgrid integration

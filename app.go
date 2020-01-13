@@ -70,7 +70,7 @@ func (a *App) getTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t := todo{ID: id}
+	t := Todo{ID: id}
 
 	if err := t.getTodo(a.DB); err != nil {
 		switch err {
@@ -96,7 +96,7 @@ func (a *App) getTodos(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) createTodo(w http.ResponseWriter, r *http.Request) {
-	var t todo
+	var t Todo
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&t); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
@@ -121,7 +121,7 @@ func (a *App) updateTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var t todo
+	var t Todo
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&t); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
@@ -161,7 +161,7 @@ func (a *App) deleteTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t := todo{ID: id}
+	t := Todo{ID: id}
 	if err := t.deleteTodo(a.DB); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
