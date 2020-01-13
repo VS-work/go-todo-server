@@ -37,7 +37,7 @@ func respondWithText(w http.ResponseWriter, code int, content string) {
 
 func sendEmail(subject string, plainTextContent string) {
 	sendGridApiKey := os.Getenv("SENDGRID_API_KEY")
-	email := os.Args[2]
+	email := os.Args[3]
 
 	if sendGridApiKey != "" {
 		from := mail.NewEmail("Todo User", "test@todo.com")
