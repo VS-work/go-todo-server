@@ -37,10 +37,11 @@ func respondWithText(w http.ResponseWriter, code int, content string) {
 
 func sendEmail(subject string, plainTextContent string) {
 	sendGridApiKey := os.Getenv("SENDGRID_API_KEY")
+	email := os.Args[2]
 
 	if sendGridApiKey != "" {
 		from := mail.NewEmail("Todo User", "test@todo.com")
-		to := mail.NewEmail("Example User", "vyacheslav.chub@valor-software.com")
+		to := mail.NewEmail("Example User", email)
 		htmlContent := "<strong>" + plainTextContent + "</strong>"
 		message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
 		client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))

@@ -8,8 +8,8 @@ import (
 func main() {
 	a := App{}
 
-	if len(os.Args) < 3 {
-		fmt.Println("Usage: go-todo-server db_file_path allowed_origins")
+	if len(os.Args) < 4 {
+		fmt.Println("Usage: go-todo-server db_file_path allowed_origins notification_email")
 		return
 	}
 
