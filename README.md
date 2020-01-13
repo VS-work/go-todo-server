@@ -29,12 +29,15 @@ You just need to run `go-todo-server`. It has the following parameters:
 
 1. Path to SQLite database file which will be used by the application.
 2. A host that will be used as `Access-Control-Allow-Origin` header value (CORS requirement). You can see related point int the following part [of code](https://github.com/VS-work/go-todo-server/blob/master/app.go#L211)
+3. Notification email 
 
 For example, the following command 
 
-`./go-todo-server ./db/todos_test.db http://localhost:3000` 
+`./go-todo-server ./db/todos_test.db http://localhost:3000 foo@bar.com`
 
 will start API server and allow to get requests from `http://localhost:3000` and will use `./db/todos_test.db` file as the current database.
+
+There are 3 kinds of notifictions: todo creation, todo modification and todo removing. 
 
 Important note: this application use port `3001` on local use.
 
@@ -53,3 +56,7 @@ There are following features regarding deployment:
 ## Sendgrid integration
 
 This application has integration with [Sendgrid cloud email service](https://sendgrid.com) and it sends an email after todo creation, modification, and removing. Please set `SENDGRID_API_KEY` environment variable on your local PC or Heroku application if you want to activate this feature.
+
+# Caution
+
+We don't guarantee Todo data persistence because this application is just an example. All your data will be lost after each deployment!
