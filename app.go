@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -28,6 +29,7 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	w.Write(response)
 }
 
+// respondWithText sends text response and it used with getInfo
 func respondWithText(w http.ResponseWriter, code int, content string) {
 	w.Header().Set("Content-Type", "text/plain")
 
@@ -35,19 +37,23 @@ func respondWithText(w http.ResponseWriter, code int, content string) {
 	w.Write([]byte(content))
 }
 
+// sendEmail sends email notification if SENDGRID_API_KEY env is set
 func sendEmail(subject string, plainTextContent string) {
-	sendGridApiKey := os.Getenv("SENDGRID_API_KEY")
-	email := os.Args[3]
+	fmt.Println(os.Args)
+	if len(os.Args) > 3 {
+		sendGridApiKey := os.Getenv("SENDGRID_API_KEY")
+		email := os.Args[3]
 
-	if sendGridApiKey != "" {
-		from := mail.NewEmail("Todo User", "test@todo.com")
-		to := mail.NewEmail("Example User", email)
-		htmlContent := "<strong>" + plainTextContent + "</strong>"
-		message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
-		client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
-		_, err := client.Send(message)
-		if err != nil {
-			log.Println(err)
+		if sendGridApiKey != "" {
+			from := mail.NewEmail("Todo User", "test@todo.com")
+			to := mail.NewEmail("Example User", email)
+			htmlContent := "<strong>" + plainTextContent + "</strong>"
+			message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
+			client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
+			_, err := client.Send(message)
+			if err != nil {
+				log.Println(err)
+			}
 		}
 	}
 }
@@ -57,10 +63,29 @@ type App struct {
 	DB     *sql.DB
 }
 
+// getInfo use if for root route
+//
+// Request Type: GET
+//
+// URL - /
 func (a *App) getInfo(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, "Todos API")
 }
 
+// getTodo will get an existing Todo
+//
+// Request Type: GET
+//
+// URL - /todo/{todo_id}
+//
+// For /todo/2
+// Response body will contain the following JSON
+//   {
+//   	"rowid": 2,
+//   	"priority": 0,
+//   	"content": "222",
+//   	"completed": 1
+//   }
 func (a *App) getTodo(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
@@ -85,6 +110,15 @@ func (a *App) getTodo(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, t)
 }
 
+// getTodos will provide all Todos data
+//
+// Request Type: GET
+//
+// URL - /todos
+//
+// Response body will contain the following JSON
+//   [{"rowid":2,"priority":0,"content":"222","completed":1},
+//   	{"rowid":1,"priority":2,"content":"111","completed":0}]
 func (a *App) getTodos(w http.ResponseWriter, r *http.Request) {
 	todos, err := getTodos(a.DB)
 	if err != nil {
@@ -95,6 +129,24 @@ func (a *App) getTodos(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, todos)
 }
 
+// createTodo will create a new Todo and send an expected notification
+//
+// Request Type: POST
+//
+// URL - /todo
+//
+// Body of request should contain JSON:
+//   {
+//     "content": "foo"
+//   }
+//
+// Response body will contain the following JSON
+//  {
+//   	"rowid": 3,
+//  	"priority": 0,
+//  	"content": "foo",
+//  	"completed": 0
+//  }
 func (a *App) createTodo(w http.ResponseWriter, r *http.Request) {
 	var t Todo
 	decoder := json.NewDecoder(r.Body)
@@ -113,6 +165,26 @@ func (a *App) createTodo(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusCreated, t)
 }
 
+// createTodo will modify an existing Todo and send an expected notification
+//
+// Request Type: PUT
+//
+// URL - /todo/{todo_id}
+//
+// Body of request should contain JSON:
+//   {
+//   	 "content": "foo",
+//     "priority": 1,
+//     "completed": 1
+//   }
+//
+// Response body will contain the following JSON
+//  {
+//   	"rowid": 3,
+//  	"priority": 1,
+//  	"content": "foo",
+//  	"completed": 1
+//  }
 func (a *App) updateTodo(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
@@ -122,13 +194,21 @@ func (a *App) updateTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var t Todo
+	t.ID = id
+
+	// chack if related toto exists
+	err = t.getTodo(a.DB)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Todo does NOT exist")
+		return
+	}
+
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&t); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 	defer r.Body.Close()
-	t.ID = id
 
 	if err := t.updateTodo(a.DB); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
@@ -153,6 +233,16 @@ func (a *App) updateTodo(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, t)
 }
 
+// deleteTodo will delete an existing Todo and send an expected notification
+//
+// Request Type: DELETE
+//
+// URL - /todo/{todo_id}
+//
+// Response body will contain the following JSON
+//   {
+//   	"result": "success"
+//   }
 func (a *App) deleteTodo(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
@@ -189,6 +279,7 @@ func (a *App) Initialize(dbname string) {
 	a.initializeRouters()
 }
 
+// initializeRouters routers list
 func (a *App) initializeRouters() {
 	a.Router.HandleFunc("/", a.getInfo).Methods("GET")
 	a.Router.HandleFunc("/todos", a.getTodos).Methods("GET")
@@ -202,11 +293,13 @@ func (a *App) Run() {
 	port, ok := os.LookupEnv("PORT")
 
 	if ok == false {
+		// will be useful for local testing
 		port = "3001"
 	}
 
 	allowedOrigins := os.Args[2]
 
+	// use CORS
 	log.Fatal(http.
 		ListenAndServe(":"+port,
 			handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}),

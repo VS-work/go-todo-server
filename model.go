@@ -4,6 +4,7 @@ import (
 	"database/sql"
 )
 
+// Todo is Todo record descriptor with JSON and DB fields
 type Todo struct {
 	ID        int    `json:"rowid" db:"rowid"`
 	Priority  int    `json:"priority" db:"priority"`
