@@ -127,6 +127,25 @@ func TestCreateTodo(t *testing.T) {
 	}
 }
 
+func TestCreateTodoWithWrongContent(t *testing.T) {
+	clearTable()
+
+	payload := []byte(`{"content": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}`)
+
+	req, _ := http.NewRequest("POST", "/todo", bytes.NewBuffer(payload))
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+
+	var m map[string]string
+
+	json.Unmarshal(response.Body.Bytes(), &m)
+	errmes := "Content length should NOT be more than 50 characters"
+	if m["error"] != errmes {
+		t.Errorf("Expected the 'error' key of the response to be set to '%s'. Got '%s'", errmes, m["error"])
+	}
+}
+
 func TestGetTodo(t *testing.T) {
 	clearTable()
 
@@ -168,6 +187,25 @@ func TestUpdateTodo(t *testing.T) {
 	}
 }
 
+func TestUpdateNonExistentTodo(t *testing.T) {
+	clearTable()
+
+	payload := []byte(`{"content": "test todo - updated content"}`)
+
+	req, _ := http.NewRequest("PUT", "/todo/123", bytes.NewBuffer(payload))
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+
+	var m map[string]string
+
+	json.Unmarshal(response.Body.Bytes(), &m)
+	errmes := "Todo does NOT exist"
+	if m["error"] != errmes {
+		t.Errorf("Expected the 'error' key of the response to be set to '%s'. Got '%s'", errmes, m["error"])
+	}
+}
+
 func TestDeleteTodo(t *testing.T) {
 	clearTable()
 	addTodos(1)
@@ -183,4 +221,21 @@ func TestDeleteTodo(t *testing.T) {
 	req, _ = http.NewRequest("GET", "/todo/1", nil)
 	response = executeRequest(req)
 	checkResponseCode(t, http.StatusNotFound, response.Code)
+}
+
+func TestDeleteNonExistentTodo(t *testing.T) {
+	clearTable()
+
+	req, _ := http.NewRequest("DELETE", "/todo/123", nil)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+
+	var m map[string]string
+
+	json.Unmarshal(response.Body.Bytes(), &m)
+	errmes := "Todo does NOT exist"
+	if m["error"] != errmes {
+		t.Errorf("Expected the 'error' key of the response to be set to '%s'. Got '%s'", errmes, m["error"])
+	}
 }

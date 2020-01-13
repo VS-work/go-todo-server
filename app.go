@@ -147,6 +147,11 @@ func (a *App) getTodos(w http.ResponseWriter, r *http.Request) {
 //  	"content": "foo",
 //  	"completed": 0
 //  }
+//  or
+//  {
+//  	"error": "Content length should NOT be more than 50 characters"
+//  }
+//  if length of Content is more than 50 characters
 func (a *App) createTodo(w http.ResponseWriter, r *http.Request) {
 	var t Todo
 	decoder := json.NewDecoder(r.Body)
@@ -155,6 +160,11 @@ func (a *App) createTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
+
+	if len(t.Content) > 50 {
+		respondWithError(w, http.StatusBadRequest, "Content length should NOT be more than 50 characters")
+		return
+	}
 
 	if err := t.createTodo(a.DB); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())

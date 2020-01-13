@@ -17,3 +17,4 @@ go-todo-server
 *.out
 
 .idea
+.vscode
