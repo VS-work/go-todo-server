@@ -171,6 +171,7 @@ func (a *App) createTodo(w http.ResponseWriter, r *http.Request) {
 //
 // URL - /todo/{todo_id}
 //
+// For /todo/3
 // Body of request should contain JSON:
 //   {
 //   	 "content": "foo",
@@ -185,6 +186,11 @@ func (a *App) createTodo(w http.ResponseWriter, r *http.Request) {
 //  	"content": "foo",
 //  	"completed": 1
 //  }
+//  or
+//  {
+//  	"error": "Todo does NOT exist"
+//  }
+//  for /todo/3333 where record with rowid 3333 does NOT exist
 func (a *App) updateTodo(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
@@ -196,7 +202,7 @@ func (a *App) updateTodo(w http.ResponseWriter, r *http.Request) {
 	var t Todo
 	t.ID = id
 
-	// chack if related toto exists
+	// check if related toto exists
 	err = t.getTodo(a.DB)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Todo does NOT exist")
@@ -239,10 +245,16 @@ func (a *App) updateTodo(w http.ResponseWriter, r *http.Request) {
 //
 // URL - /todo/{todo_id}
 //
+// For /todo/1
 // Response body will contain the following JSON
 //   {
 //   	"result": "success"
 //   }
+//  or
+//  {
+//  	"error": "Todo does NOT exist"
+//  }
+//  for /todo/3333 where record with rowid 3333 does NOT exist
 func (a *App) deleteTodo(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
@@ -252,6 +264,14 @@ func (a *App) deleteTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	t := Todo{ID: id}
+
+	// check if related toto exists
+	err = t.getTodo(a.DB)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Todo does NOT exist")
+		return
+	}
+
 	if err := t.deleteTodo(a.DB); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
